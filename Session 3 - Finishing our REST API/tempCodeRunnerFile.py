@@ -1,0 +1,1 @@
+list(stores.values())

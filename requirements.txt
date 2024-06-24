@@ -1,0 +1,6 @@
+flask
+flask-smorest
+flask-sqlalchemy
+flask-jwt-extended
+passlib
+jsonify
