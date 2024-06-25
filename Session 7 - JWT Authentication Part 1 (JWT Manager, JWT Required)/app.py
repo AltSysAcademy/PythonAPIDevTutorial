@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import uuid
 from db import db
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, create_refresh_token, get_jwt
 
 from flask_smorest import Api
 
@@ -11,6 +11,8 @@ from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
 
 import os
+
+from blocklist import BLOCKLIST
 
 def create_app(db_url=None):
     app = Flask(__name__)
@@ -95,6 +97,12 @@ def create_app(db_url=None):
             return {"is_admin": True}
         return {"is_admin": False}
     
+
+    # Checks everytime if the JTI of the JWT is in the blocklist
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blocklist(jwt_header, jwt_payload):
+        # True or False
+        return jwt_payload["jti"] in BLOCKLIST
     
 
     return app

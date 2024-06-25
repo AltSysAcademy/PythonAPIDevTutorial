@@ -8,6 +8,8 @@ from models import StoreModel
 from db import db
 from sqlalchemy.exc import SQLAlchemyError
 
+from flask_jwt_extended import jwt_required
+
 # Creating a blueprint that would be later registered sa documentation
 blp = Blueprint("stores", __name__, description="Operation on stores.")
 
@@ -19,6 +21,8 @@ class Store(MethodView):
         store = StoreModel.query.get_or_404(store_id)
         return store
 
+    # Requires a fresh token
+    @jwt_required(fresh=True)
     def delete(self, store_id):
         store = StoreModel.query.get_or_404(store_id)
 
@@ -34,6 +38,8 @@ class StoreList(MethodView):
         return StoreModel.query.all()
 
     # Data Validation with StoreSchema
+    # Requires a fresh token
+    @jwt_required()
     @blp.arguments(StoreSchema)
     @blp.response(200, StoreSchema)
     def post(self, new_store_data):

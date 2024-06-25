@@ -23,6 +23,8 @@ class Item(MethodView):
         item = ItemModel.query.get_or_404(item_id)
         return item
 
+    # Requires a fresh token
+    @jwt_required(fresh=True)
     def delete(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
 
@@ -35,6 +37,8 @@ class Item(MethodView):
     # Idempotency - Sending multiple requests should only have the same result
     # Idempotency - When updating a nonexisting item, you should add it
     # Validates the update item
+    # Requires a fresh token
+    @jwt_required(fresh=True)
     @blp.arguments(ItemUpdateSchema) # JSON Payload/Body Request
     @blp.response(200, ItemUpdateSchema) # Returned Data by the API 
     def put(self, new_item_data, item_id):
@@ -62,6 +66,8 @@ class ItemList(MethodView):
         return ItemModel.query.all()
     
 
+    # Requires a fresh token
+    @jwt_required()
     # Data Validation: JSON -> Blp.Arg -> POST Method
     @blp.arguments(ItemSchema) 
     @blp.response(200, ItemSchema)
