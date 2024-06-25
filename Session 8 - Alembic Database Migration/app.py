@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-import uuid
 from db import db
 from flask_jwt_extended import JWTManager, create_refresh_token, get_jwt
 
@@ -14,6 +13,8 @@ import os
 
 from blocklist import BLOCKLIST
 from datetime import timedelta
+
+from flask_migrate import Migrate
 
 def create_app(db_url=None):
     app = Flask(__name__)
@@ -33,11 +34,14 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", "sqlite:///data.db")
     # Connect our flask_sqlalchemy to flask
     db.init_app(app)
+    migrate = Migrate(app, db)
 
     # We need to create all the models that we have designed
+    '''
     with app.app_context():
         db.create_all()
-
+    '''
+        
     # Register the blueprints to API Documentation
     api = Api(app) 
     api.register_blueprint(ItemBlueprint)

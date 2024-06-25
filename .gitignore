@@ -2,3 +2,6 @@
 .gitignore
 instance
 *.rar
+__pycache__
+instance
+migrations
