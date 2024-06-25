@@ -17,8 +17,9 @@ blp = Blueprint("users", __name__, description="Operations on users.")
 /register   - POST create new user
 /user/<id>  - GET     (testing)
 /user/<id>  - DELETE  (testing)
-
 /login      - POST
+
+
 /refresh    - POST
 /logout     - POST
 '''

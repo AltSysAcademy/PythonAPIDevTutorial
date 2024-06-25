@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import uuid
 from db import db
 from flask_jwt_extended import JWTManager
@@ -11,8 +11,6 @@ from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
 
 import os
-
-import jsonify
 
 def create_app(db_url=None):
     app = Flask(__name__)
@@ -50,6 +48,43 @@ def create_app(db_url=None):
     # Create a JWT Manager Object
     jwt = JWTManager(app)
 
+
+    # Add the custom error messages
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {
+                    "message": "The token has expired.", 
+                    "error": "token_expired"
+                }
+            ),
+            401
+        )
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return (
+            jsonify(
+                {
+                    "message": "Signature verification failed.", 
+                    "error": "invalid_token"
+                }
+            ),
+            401
+        )
+
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        return (
+            jsonify(
+                {
+                    "message": "Request does not contain an access token.", 
+                    "error": "authorization_required"
+                }
+            ),
+            401
+        )
 
     # Responsible for changing a JWT claim
     @jwt.additional_claims_loader
