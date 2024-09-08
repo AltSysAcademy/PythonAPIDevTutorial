@@ -1,0 +1,8 @@
+Part 0: Explain them why the concept of list of dictionary wont work and introduce to them the possible data model improvement for our code in the next session
+
+Part 0.1: Explain to them that we will utilize dictionaries as our main data for this session only 
+
+Part 1: Create a fake database
+1. Create a new db.py file where in we will store 2 variables, 'stores' and 'items' as empty dictionaries
+2. Show them the new format on how our data model will look like, explain to them what a data model is
+3. 

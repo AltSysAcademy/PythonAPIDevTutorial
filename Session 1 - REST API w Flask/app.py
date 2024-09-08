@@ -66,7 +66,7 @@ def create_item(store_name):
     
     return {"message": "Store not found."}, 404
 
-# Get a specific item from a store
+# Get items from a store
 @app.get('/store/<string:store_name>/item')
 def get_items_from_store(store_name):
     for store in stores:

@@ -1,0 +1,71 @@
+Part 0: Introduction
+0. Create virtual environment .venv and install Flask
+    python -m venv .venv
+0.1 Create a new file called "app.py" and open it by itself. 
+0.2 Introduce concept of HTTP Requests and API
+
+Part 1: First Endpoint (GET Request)
+0. Explain what a GET Request is.
+1. Create the fake database 'stores' (tell them that you will explain it later)
+2. Create first endpoint '/store' with GET
+
+    @app.get("/store")
+    def get_stores():
+        return stores
+
+3. Run the server and create a GET request in Google Chrome
+4. Explain URL vs Endpoints
+5. Explain what the returned data is (JSON)
+    - A long string with a format that is similar to a dictionary
+
+Part 2: Interacting with our API using Postman
+1. Teach them how to interact with our API using Postman (By creating request and receiving response)
+2. Create a new collection in Postman called 'Batch 2 API Development Course'
+3. Create a new request inside the collection called '/store Get All Stores Data'
+
+Part 3: Creating Stores in our REST API (POST Request)
+0. Explain what a POST request is.
+1. Create a new POST Request in Postman '/store Create new store'
+2. Run the POST Request and show them that it is not allowed
+3. Create a new endpoint in the Python Code called '/store' with POST
+4. Import request from flask for us to get the json data from the client
+
+    from flask import Flask, request
+
+5. Code the POST request for creating a new store
+    # Creating our second endpoint
+    @app.post("/store")
+    def create_store():
+        # Get the JSON Payload from the POST Request
+        store_data = request.get_json()
+
+        # Create a new store using dictionary
+        new_store = {
+            "name": store_data["name"],
+            "items": []
+        }
+
+        stores.append(new_store)
+        
+        return new_store, 201
+
+6. Explain the status code (200, and 201).
+7. Run the new endpoint and show them the result of the POST request (201 and the result)
+8. Run the GET request again to show that the store is added, but explain to them that it does not get saved because we are not using a database
+
+Part 4: URL Segmentation (Show specific store)
+1. Create a new GET endpoint in Flask '/store/<string:store_name>'
+2. Explain to them the concept of URL Segment that it is simply a variable passed through the endpoint
+3. After coding, show them how does the URL accept a variable into the function
+
+Part 5: Create items in a specific store
+1. Create a new POST endpoint '/store/<string:store_name>/item'
+2. Explain the code inside
+3. Run the code to show them how does it work
+
+Part 6: GET items from a specific store
+1. Create a new GET endpoint '/store/<string:store_name>/item'
+2. Explain the code inside
+3. Run the code to show how does it work
+
+Part 7: Explain them why the concept of list of dictionary wont work and introduce to them the possible data model improvement for our code in the next session

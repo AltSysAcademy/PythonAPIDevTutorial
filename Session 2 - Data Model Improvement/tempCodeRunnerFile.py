@@ -1,1 +1,0 @@
-list(stores.values())
