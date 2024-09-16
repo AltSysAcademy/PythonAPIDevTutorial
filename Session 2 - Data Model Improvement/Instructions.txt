@@ -1,8 +1,101 @@
 Part 0: Explain them why the concept of list of dictionary wont work and introduce to them the possible data model improvement for our code in the next session
 
-Part 0.1: Explain to them that we will utilize dictionaries as our main data for this session only 
+Part 0.1: Finish the previous code first before proceeding to the topic
+Part 0.2: Teach requirements.txt
+    - flask
+    - flask-smorest
+    - python-dotenv
+
+Part 0.3: Create .flaskenv which is an option that our flask app would use
+
+    FLASK_APP=app
+    FLASK_ENV=development
 
 Part 1: Create a fake database
-1. Create a new db.py file where in we will store 2 variables, 'stores' and 'items' as empty dictionaries
-2. Show them the new format on how our data model will look like, explain to them what a data model is
-3. 
+1. Explain that we will separate the store and items to 2 separate variables.
+    - We will reference the store inside an item using the store's id
+2. Create a new file called db.py and paste the store and items variable
+3. Change get_store endpoint
+    GET '/store/<int:store_id>
+
+    @app.get('/store/<string:store_id>')
+    def get_store(store_id):
+        if store_id in stores:
+            return stores[store_id]
+        
+        return {"message": "Store not found."}, 404
+
+4. Change get_stores endpoint
+    GET '/store'
+
+    @app.get("/store")
+    def get_stores():
+        return list(stores.values())
+
+5. Change create_store endpoint
+    POST '/store'
+
+    @app.post("/store")
+    def create_store():
+        store_data = request.get_json()
+
+        # Create ID
+        store_id = uuid.uuid4().hex
+
+        new_store = {
+            "id": store_id,
+            "name": store_data["name"]
+        }
+
+        stores.update(
+            {store_id: new_store}
+        )
+
+        # 201 - Creation successful
+        return new_store, 201 
+
+6. Change create_item endpoint
+    RENAME ENDPOINT TO '/item' from '/store/id/item'
+
+    POST '/item'
+    @app.post('/item')
+    def create_item():
+        item_data = request.get_json()
+
+        if item_data["store_id"] in stores:
+            item_id = uuid.uuid4().hex
+
+            new_item = {
+                "id": item_id,
+                "name": item_data["name"],
+                "price": item_data["price"],
+                "store_id": item_data["store_id"],
+            }
+
+            items.update({item_id:new_item})
+
+            return new_item, 201
+
+        return {"message": "Store not found."}, 404
+
+7. Create new endpoint for get_all_items()
+    - We were not able to do this before because all items are inside each store and it is inefficient for us to create a for loop that would get each item from each store
+
+    GET '/item'
+
+    @app.get('/item')
+    def get_all_items():
+        return list(items.values())
+
+8. Change get_item() endpoint
+    Rename /store/<store_name>/item
+    GET '/item/<int:id>'
+
+    @app.get('/item/<string:item_id>')
+    def get_item(item_id):
+        if item_id in items:
+            return items[item_id]
+
+        return {"message": "Item ID not found."}
+
+
