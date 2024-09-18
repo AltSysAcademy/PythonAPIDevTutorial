@@ -1,0 +1,55 @@
+Part 0: Explain the main topic that will happen in this session which focuses on adding 2 more HTTP method and fixing possible errors in the future
+
+Part 1: First, group all endpoints that are related (Stores and Items)
+Part 2: Go on all functions in store and fix possible error, refer to Session3/app.py
+Part 3: Go on all functions in items and fix possible error, refer to Session3/app.py
+
+Part 4: Introduce them to DELETE Method
+Part 4.1: Create a delete store method using their ID
+
+    @app.delete('/store/<int:store_id>')
+    def delete_store(store_id):
+        if store_id in stores:
+            del stores[store_id]
+            return {"message": "Store Deleted."}
+        else:
+            return {"message": "Store not found."}, 404
+
+Part 4.2: Create a delete item method via ID
+    
+    # Create endpoint for deleting an Item
+    @app.delete('/item/<string:item_id>')
+    def delete_item(item_id):
+        if item_id in items:
+            del items[item_id]
+            return {"message": "Item deleted."}
+        else:
+            return {"message": "Item not found."}, 404
+
+Part 5: Introduce them to PUT method and the concept of idempotency
+    Idempotency - If you will try to edit an existing item, but the data that you provided or the id does not exist yet, it will automatically create one. 
+
+Part 5.1: Create update item endpoint
+
+    # Create an endpoint for updating an item
+    @app.put('/item/<string:item_id>')
+    def update_item(item_id):
+        # The data from postman that we will use to update our item
+        new_item_data = request.get_json()
+        
+        if "name" in new_item_data or "price" in new_item_data:
+            # Check if the item exists
+            if item_id in items:
+                # Get the item
+                item = items[item_id]
+
+                # Update the item
+                item |= new_item_data
+
+                # Return the item
+                return item
+        
+        return {"message": "Item not found."}, 404
+
+
+
