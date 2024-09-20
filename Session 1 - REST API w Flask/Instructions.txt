@@ -1,6 +1,7 @@
 Part 0: Introduction
 0. Create virtual environment .venv and install Flask
     python -m venv .venv
+    pip install flask
 0.1 Create a new file called "app.py" and open it by itself. 
 0.2 Introduce concept of HTTP Requests and API
 

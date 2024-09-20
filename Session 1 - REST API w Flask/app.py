@@ -4,6 +4,7 @@ from flask import Flask, request
 # Create a Flask Web App
 app = Flask(__name__)
 
+
 # Structure of the Data
 # Mock Database - Fake Database
 stores = [
