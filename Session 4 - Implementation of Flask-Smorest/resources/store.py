@@ -16,12 +16,11 @@ from schemas import StoreSchema
 
 # Creating a blueprint that would be later registered sa documentation
 # Blueprint(name, import_name, description), name and description would be displayed on the API Documentation
-blp = Blueprint("stores", __name__, description="Operation on stores.")
+blp = Blueprint("Stores Endpoints", __name__, description="Operation on stores.")
 
 
 @blp.route("/store/<string:store_id>")
 class Store(MethodView):
-    @blp.response(200, StoreSchema)
     def get(self, store_id):
         if store_id in stores:
             return stores[store_id]
@@ -37,13 +36,9 @@ class Store(MethodView):
 
 @blp.route("/store")
 class StoreList(MethodView):
-    @blp.response(200, StoreSchema(many=True))
     def get(self):
         return list(stores.values())
 
-    # Data Validation with StoreSchema
-    @blp.arguments(StoreSchema)
-    @blp.response(200, StoreSchema)
     def post(self, store_data):
         store_id = uuid.uuid4().hex
 

@@ -1,1 +1,93 @@
 0. Now, we will utilize Marshmallow for Data Validation
+0.1. Explain how does schema work again.
+
+1. Create a new file called 'schemas.py'
+
+2. Create schema per item
+
+    from marshmallow import Schema, fields
+
+    # Only used for data validation and API Documentation
+    class ItemSchema(Schema):
+        # Define fields(columns)
+        # dump_only - They are not included when you send a POST req
+        id = fields.Str(dump_only=True) # Would only show up when you GET it
+        name = fields.Str(required=True)
+        price = fields.Float(required=True)
+        store_id = fields.Str(required=True)
+
+    class StoreSchema(Schema):
+        id = fields.Str(dump_only=True)
+        name = fields.Str(required=True)
+
+    class ItemUpdateSchema(Schema):
+        # Optional
+        name = fields.Str()
+        price = fields.Float()
+
+3. Perform data/request validation by utilizing blp.arguments
+
+    - Go inside resources.store first and add the following
+
+        @blp.route("/store")
+        class StoreList(MethodView):
+            # Explain how does the argument work and why post has a store_data and explain that we wont need request anymore because blp.arguments already does it for us
+            # Data Validation: JSON -> Blp.Arg -> POST Method
+            @blp.arguments(StoreSchema)
+            def post(self, store_data)
+    
+    - Go inside resources.items and add the following
+
+        @blp.route("/item/<string:item_id>")
+        class Item(MethodView):
+            @blp.arguments(ItemUpdateSchema) # JSON Payload/Body Request
+            def put(self, new_item_data, item_id)
+
+        
+        @blp.route("/item")
+        class ItemList(MethodView):
+            @blp.arguments(ItemSchema) 
+            def post(self, item_data):
+
+4. Perform response validation by utilizing blp.response
+    - Go inside resources.store first and add the following
+
+        @blp.route("/store/<string:store_id>")
+        class Store(MethodView):
+            # Explain that 200 is the return http code and StoreSchema is the basis 
+            @blp.response(200, StoreSchema)
+            def get(self, store_id)
+
+        @blp.route("/store")
+        class StoreList(MethodView):
+            @blp.response(200, StoreSchema(many=True))
+            def get(self):
+                # We will change from list(store.values) to just store.values 
+                # This would automatically be converted into a list because of marshmallow
+                return stores.values()
+
+            # Data Validation with StoreSchema
+            @blp.arguments(StoreSchema)
+            @blp.response(200, StoreSchema)
+            def post(self, store_data):
+    - Go inside resources.item and add the following:
+        @blp.route("/item/<string:item_id>")
+        class Item(MethodView):
+            # Validation for the response
+            @blp.response(200, ItemSchema)
+            def get(self, item_id):
+
+            # Validates the update item
+            @blp.arguments(ItemUpdateSchema) # JSON Payload/Body Request
+            @blp.response(200, ItemUpdateSchema) # Returned Data by the API 
+            def put(self, new_item_data, item_id):
+
+        @blp.route("/item")
+        class ItemList(MethodView):
+            @blp.response(200, ItemSchema(many=True))
+            def get(self):
+                return items.values()
+
+            @blp.arguments(ItemSchema) 
+            @blp.response(200, ItemSchema)
+            def post(self, item_data)

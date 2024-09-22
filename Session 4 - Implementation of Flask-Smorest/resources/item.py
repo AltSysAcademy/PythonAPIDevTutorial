@@ -15,8 +15,6 @@ blp = Blueprint("items", __name__, description="Operations on items.")
 
 @blp.route("/item/<string:item_id>")
 class Item(MethodView):
-    # Validation for the response
-    @blp.response(200, ItemSchema)
     def get(self, item_id):
         if item_id in items:
             return items[item_id]
@@ -31,8 +29,6 @@ class Item(MethodView):
             abort(404, message="Item not found")
 
     # Validates the update item
-    @blp.arguments(ItemUpdateSchema) # JSON Payload/Body Request
-    @blp.response(200, ItemUpdateSchema) # Returned Data by the API 
     def put(self, new_item_data, item_id):
     
         if item_id in items:
@@ -45,14 +41,9 @@ class Item(MethodView):
 
 @blp.route("/item")
 class ItemList(MethodView):
-    @blp.response(200, ItemSchema(many=True))
     def get(self):
         return list(items.values())
     
-
-    # Data Validation: JSON -> Blp.Arg -> POST Method
-    @blp.arguments(ItemSchema) 
-    @blp.response(200, ItemSchema)
     def post(self, item_data):
         for item in items.values():
             if (

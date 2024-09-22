@@ -47,7 +47,7 @@ class Item(MethodView):
 class ItemList(MethodView):
     @blp.response(200, ItemSchema(many=True))
     def get(self):
-        return list(items.values())
+        return items.values()
     
 
     # Data Validation: JSON -> Blp.Arg -> POST Method
