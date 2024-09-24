@@ -30,6 +30,8 @@ class Item(MethodView):
 
     # Validates the update item
     def put(self, new_item_data, item_id):
+        # The data from postman that we will use to update our item
+        new_item_data = request.get_json()
     
         if item_id in items:
             item = items[item_id]
@@ -45,6 +47,9 @@ class ItemList(MethodView):
         return list(items.values())
     
     def post(self, item_data):
+        # The data from postman that we will use to create our item
+        item_data = request.get_json()
+
         for item in items.values():
             if (
                 item["name"] == item_data["name"] 
