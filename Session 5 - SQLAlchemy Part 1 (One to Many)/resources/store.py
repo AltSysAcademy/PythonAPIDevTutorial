@@ -37,7 +37,7 @@ class StoreList(MethodView):
 
     # Data Validation with StoreSchema
     @blp.arguments(StoreSchema)
-    @blp.response(200, StoreSchema)
+    @blp.response(201, StoreSchema)
     def post(self, new_store_data):
         store = StoreModel(**new_store_data)
 
@@ -47,5 +47,5 @@ class StoreList(MethodView):
         except SQLAlchemyError:
             abort(500, message="An error has occured while creating a store.")
         
-        return store, 201
+        return store
 

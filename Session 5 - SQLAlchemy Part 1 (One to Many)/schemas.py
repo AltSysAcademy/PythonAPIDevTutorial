@@ -15,7 +15,7 @@ class ItemUpdateSchema(Schema):
     name = fields.Str()
     price = fields.Float()
 
-    # For idempotency
+    # For idempotency (When we add new items)
     store_id = fields.Int()
 #####
 class ItemSchema(PlainItemSchema):

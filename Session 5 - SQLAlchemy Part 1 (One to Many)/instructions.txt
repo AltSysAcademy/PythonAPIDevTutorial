@@ -1,0 +1,300 @@
+0. Add sqlalchemy, flask-sqlalchemy in our requirements.txt
+0.1. The reason why we will use flask-sqlalchemy is so that we could have easily create tables and the queries
+0.2. You could normally use SQL if you want, but ORM makes our code easier. You will see later why.
+
+0.3. Explain what data models are
+0.4. Explain data models (For SQLAlchemy/Database) vs data schema (Data Validation in Flask-Smorest/API)
+
+0.5. Show what SQL Looks like, with tables and its queries.
+    - Primary Keys
+    - Table
+    - Foreign Keys
+    - SQL Queries
+    - Data Types
+    - Rows vs Fields
+
+1. Setup our flask_sqlalchemy
+    - Open db.py and clear it
+    - Copy the code in db.py
+
+        from flask_sqlalchemy import SQLAlchemy
+
+        db = SQLAlchemy()
+
+2. Create our very first model for ITEM
+    - Create a new folder called 'models'
+    - Create our very first model 'item.py'
+
+    from db import db
+
+    # SQLAlchemy simply utilizes OOP in order for us to control the SQL, instead of using the queries or language, which makes this easier because we do not have to learn a new language for us to use a database.
+    # Any class that we create, SQLAlchemy will automatically turn this into a table in SQL
+    # This is called an Item Model (Not Item Table, because we are not using SQL)
+    class ItemModel(db.Model):
+        # Setup the table name
+        __tablename__ = "items"
+
+        # Create the fields/columns of our table
+        id = db.Column(db.Integer, primary_key=True)
+
+        # db.String(80) - means that the max value that each name could have is only 80 characters
+        name = db.Column(db.String(80), nullable=False)
+        
+        price = db.Column(db.Float(precision=2), unique=False, nullable=False)
+
+
+        # The ID here should match the ID that we will put in our Store Models
+        store_id = db.Column(db.Integer, unique=False, nullable=False)
+
+3. Create our next model for store.py
+    from db import db
+
+    # Create a model for Store
+    class StoreModel(db.Model):
+        __tablename__ = "stores"
+
+        id = db.Column(db.Integer, primary_key=True)
+        name = db.Column(db.String(80), unique=True, nullable=False)
+
+4. But what we did for the both models are not enough, because these two models are not currently connected.
+
+    - In our ItemModel, we have to create our very first One to Many Relationship (A store to many items)
+
+    - Just change the store_id code, that it is a foreign key
+    # stores.id refers to the model stores (__tablename__), and its id
+    store_id = db.Column(db.Integer, db.ForeignKey("stores.id"),unique=False, nullable=False)
+
+    - After that, we have to create a simple store model object from the user id (in ItemModel)
+    # Create another column that would contain the store that we referrenced in store_id
+    # Define the relationship between ItemModel and StoreModel ('items' table and 'stores' table)
+    store = db.relationship("StoreModel", back_populates="items")
+    
+
+    ---- 
+    - Then, we also have to create a connection in our StoreModel
+    # Setup a new relationship to the ItemModel.store
+    # lazy="dynamic", means that this would not load until we tell it to.
+
+    items = db.relationship("ItemModel", back_populates="store", lazy="dynamic")
+
+5. In the models folder, create a file called __init__.py for easy access of models
+    __init__.py
+
+    from models.store import StoreModel
+    from models.item import ItemModel
+
+6. Now, we have to also change our schema because we used a model.
+
+    - Because we created a relationship, we have to update our schema
+
+    # Create a schema that does not really deal with stores
+    # Rename to PlainItemSchema, and then remove the store_id
+    # ID change to integer
+    class PlainItemSchema(Schema):
+        id = fields.Int(dump_only=True)
+        name = fields.Str(required=True)
+        price = fields.Float(required=True)
+    
+    # Create a store schema that does not deal with items
+    class PlainStoreSchema(Schema):
+        id = fields.Int(dump_only=True)
+        name = fields.Str(required=True)
+
+    class ItemUpdateSchema(Schema):
+        name = fields.Str()
+        price = fields.Float()
+
+        # For idempotency - PUT THIS LATER SA PUT SA ITEM 
+        store_id = fields.Int()
+
+    #####
+    # The reason why we created a separate for both item and store schema is to fix referencing problems
+    # Show the concept of the referencing problem and show the fix.
+    class ItemSchema(PlainItemSchema):
+        store_id = fields.Int(required=True)
+        # fields.Nested simply means that we will put another Model inside our Model.
+        store = fields.Nested(PlainStoreSchema(), dump_only=True)
+
+    class StoreSchema(PlainStoreSchema):
+        # List(Nested), means that we will have a list of models in this column (NOT IN THE DATABASE, JUST FOR DATA VALIDATION AND API DOCUMENTATION)
+        items = fields.List(fields.Nested(PlainItemSchema()), dump_only=True)
+    
+7. Configure FlaskSQLAlchemy in app.py to connect it to our flask app
+
+    - Add this code in app.py
+
+    def create_app(db_url=None):
+        app = Flask(__name__)
+
+        # Setup the configs
+        app.config["PROPAGATE_EXCEPTIONS"] = True
+        app.config["API_TITLE"] = "Stores REST API"
+        app.config["API_VERSION"] = "v1"
+        app.config["OPENAPI_VERSION"] = "3.1.0"
+        app.config["OPENAPI_URL_PREFIX"] = "/"
+
+        # Responsible for the documentation website
+        app.config["OPENAPI_SWAGGER_UI_PATH"] = "/docs"
+        app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+
+        # Setup what database we are going to use.
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", "sqlite:///data.db")
+        # Connect our flask_sqlalchemy to flask
+        db.init_app(app)
+
+        # We need to create all the models that we have designed
+        with app.app_context():
+            db.create_all()
+
+        # Register the blueprints to API Documentation
+        api = Api(app) 
+        api.register_blueprint(ItemBlueprint)
+        api.register_blueprint(StoreBlueprint)
+
+        return app
+
+    if __name__ == '__main__':
+        app = create_app()
+        app.run(debug=True)
+
+    - The new file will be inside a folder called 'instance/data.db'
+    
+
+8. Now we move forward with inserting (POST) data into a table using SQLAlchemy
+    - Open item.py
+        from schemas import ItemSchema, ItemUpdateSchema
+
+        from db import db
+        from models import ItemModel
+        from sqlalchemy.exc import SQLAlchemyError
+
+    - POST '/item'
+    @blp.arguments(ItemSchema) 
+    @blp.response(201, ItemSchema)
+    def post(self, item_data):
+        # We do not have to check this manually if the item already exists because in our ItemModel, we already set a unique=True, meaning that it should be unique.
+
+        # ** kwargs - keyword arguments
+        # This creates a new instance of the item model
+        # The kwargs is responsible for putting everything from our request body
+        new_item = ItemModel(**item_data)
+
+        try:
+            # Add the new_item to the database session
+            db.session.add(new_item)
+            # Save the changes
+            db.session.commit()
+        except SQLAlchemyError:
+            abort(500, message="An error has occured while creating an item.")
+        
+        return new_item
+        
+    - Open store.py
+    from schemas import StoreSchema
+
+    from models import StoreModel
+    from db import db
+    from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
+    - POST '/store'
+    @blp.arguments(StoreSchema)
+    @blp.response(201, StoreSchema)
+    def post(self, new_store_data):
+        store = StoreModel(**new_store_data)
+
+        try:
+            db.session.add(store)
+            db.session.commit()
+        except IntegrityError:
+            abort(400, message="A store with that name already exists.")
+        except SQLAlchemyError:
+            abort(500, message="An error has occured while creating a store.")
+        
+        return store
+
+9. Now, we find models (GET) in the database by their ID or we return a 404
+
+    - Open item.py
+    GET '/item/id'
+    # Use query.get_or_404 to either get the data if it exists or return a 404 if it does not exist
+    @blp.response(200, ItemSchema)
+    def get(self, item_id):
+        item = ItemModel.query.get_or_404(item_id)
+        return item
+
+    - Open store.py
+    GET '/store/id'
+    @blp.response(200, StoreSchema)
+    def get(self, store_id):
+        store = StoreModel.query.get_or_404(store_id)
+        return store
+
+10. Now we update (PUT) models with SQLAlchemy
+
+    - Open item.py
+
+    PUT '/item/<id>'
+    # Idempotency - Sending multiple requests should only have the same result
+    # Idempotency - When updating a nonexisting item, you should add it
+    # Validates the update item
+    @blp.arguments(ItemUpdateSchema) # JSON Payload/Body Request
+    @blp.response(200, ItemUpdateSchema) # Returned Data by the API 
+    def put(self, new_item_data, item_id):
+        item = ItemModel.query.get(item_id)
+    
+        if item:
+            item.name = new_item_data["name"]
+            item.price = new_item_data["price"]
+        else:
+            # Create a new item
+            item = ItemModel(**new_item_data)
+
+        db.session.add(item)
+        db.session.commit()
+    
+        return item
+
+11. Retrieve list of all models
+
+    - item.py
+    GET '/item'
+
+    @blp.response(200, ItemSchema(many=True))
+    def get(self):
+        return ItemModel.query.all()
+
+    - store.py
+
+    GET '/store'
+    @blp.response(200, StoreSchema(many=True))
+    def get(self):
+        return StoreModel.query.all()
+
+12. Deleting models 
+
+    - item.py
+    GET '/item/<id>'
+    def delete(self, item_id):
+        item = ItemModel.query.get_or_404(item_id)
+
+        # Delete an Item
+        db.session.delete(item)
+        db.session.commit()
+
+        return {"message": "Item deleted."}
+
+
+    - store.py
+    DELETE '/store/<id>'
+    def delete(self, store_id):
+        store = StoreModel.query.get_or_404(store_id)
+
+        db.session.delete(store)
+        db.session.commit()
+
+        return {"message": "Store deleted."}
+
+13. There is an issue when we delete a store, all the items registered to it will not be deleted and will be just "floating". Lets fix it by editing our StoreModel
+    items = db.relationship("ItemModel", back_populates="store", lazy="dynamic", cascade="all, delete")
+
+    cascade="all,delete" means that it will delete all child of that store model
