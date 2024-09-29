@@ -245,3 +245,12 @@ DELETE /tag/{id} - Delete a tag, which should not have any items that are linked
                 abort(500, message="An error occured while unlinking the tag.")
             
             return {"message": "Item removed from the tag.", "item": item, "tag": tag}
+
+
+9. Import all models in app.py
+
+## Import all models FOR THE SQLALCHEMY TO GENERATE TABLES 
+from models.item_tags import ItemsTags
+from models.item import ItemModel
+from models.store import StoreModel
+from models.tag import TagModel
