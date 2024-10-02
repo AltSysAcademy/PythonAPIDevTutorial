@@ -41,7 +41,7 @@ def create_app(db_url=None):
     with app.app_context():
         db.create_all()
     '''
-        
+    
     # Register the blueprints to API Documentation
     api = Api(app) 
     api.register_blueprint(ItemBlueprint)
@@ -94,6 +94,7 @@ def create_app(db_url=None):
         )
 
     # Responsible for changing a JWT claim
+    # This always run when we create a new JWT
     @jwt.additional_claims_loader
     def add_claim_to_jwt(identity):
         # user = UserModel.query.get(identity)
