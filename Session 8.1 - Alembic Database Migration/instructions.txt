@@ -1,0 +1,56 @@
+Part 0: Explain the concept of database migrations.
+
+    - Add flask-migrate to requirements.txt
+
+Part 1: Import flask_migrate in our app.py
+
+    from flask_migrate import Migrate
+
+    db.init_app(app)
+    migrate = Migrate(app, db)
+
+
+    # Since we are using Flask-Migrate now to create our database, we could remove the code below.
+    '''
+    with app.app_context():
+        db.create_all()
+    '''
+
+Part 2: Initializing our Database with Flask Migrate
+    Make sure to adjust the .flaskenv first
+
+    1. In terminal, type the following:
+        flask db init
+    
+    - this would create a 'migrations' folder wherein we could see your migrations config and version history for migration.
+
+    2. Create our first migration (This should be done after initialization)
+
+    Create a migration which detect changes in the models.
+
+        flask db migrate -m "Message here"
+
+    - This would create a new version of our database, it will create a new database based on the models we created, it will automatically convert all our models into table
+
+    - Show them the generated .py file.
+
+    3. Explain that everytime we create change in our models, we just run
+        
+        Apply the changes:
+        flask db upgrade
+
+    4. If you want to go back on a version, you could use the following:
+        
+        flask db downgrade
+    
+    5. Or go down a specific version
+
+        flask db downgrade <revision>
+
+    6. If you want to check the current revision, you could use this
+        flask db current
+
+    7. Check the history
+        flask db history
+
+    8. If you want to add default values to a column to be applied to the database schema, you could also add that in the migration revision versions.
